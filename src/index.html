@@ -55,6 +55,41 @@
         </main>
     </div>
     
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="modal-close" id="close-settings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label for="plugin-dir">Plugin Directory:</label>
+                    <div class="input-group">
+                        <input type="text" id="plugin-dir" readonly>
+                        <button class="btn btn-secondary" id="browse-dir">Browse</button>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="auto-update"> 
+                        Check for updates automatically
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="notifications"> 
+                        Show notifications
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-settings">Cancel</button>
+                <button class="btn btn-primary" id="save-settings">Save</button>
+            </div>
+        </div>
+    </div>
+    
     <script src="plugins.js"></script>
     <script src="renderer.js"></script>
 </body>

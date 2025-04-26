@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     document.getElementById('settings-btn').addEventListener('click', () => {
-        console.log('Opening settings...');
+        openSettingsModal();
     });
     
     document.getElementById('search-input').addEventListener('input', (e) => {
@@ -101,6 +101,72 @@ document.addEventListener('DOMContentLoaded', () => {
             renderInstalledPlugins();
         }
     };
+    
+    function openSettingsModal() {
+        const modal = document.getElementById('settings-modal');
+        loadSettings();
+        modal.classList.add('show');
+    }
+    
+    function closeSettingsModal() {
+        const modal = document.getElementById('settings-modal');
+        modal.classList.remove('show');
+    }
+    
+    function loadSettings() {
+        const settings = getSettings();
+        document.getElementById('plugin-dir').value = settings.pluginDir;
+        document.getElementById('auto-update').checked = settings.autoUpdate;
+        document.getElementById('notifications').checked = settings.notifications;
+    }
+    
+    function getSettings() {
+        const defaultSettings = {
+            pluginDir: process.env.HOME + '/StreamDeck/Plugins',
+            autoUpdate: true,
+            notifications: true
+        };
+        
+        try {
+            const saved = localStorage.getItem('streamdeck-settings');
+            return saved ? {...defaultSettings, ...JSON.parse(saved)} : defaultSettings;
+        } catch {
+            return defaultSettings;
+        }
+    }
+    
+    function saveSettings() {
+        const settings = {
+            pluginDir: document.getElementById('plugin-dir').value,
+            autoUpdate: document.getElementById('auto-update').checked,
+            notifications: document.getElementById('notifications').checked
+        };
+        
+        localStorage.setItem('streamdeck-settings', JSON.stringify(settings));
+        closeSettingsModal();
+    }
+    
+    document.getElementById('close-settings').addEventListener('click', closeSettingsModal);
+    document.getElementById('cancel-settings').addEventListener('click', closeSettingsModal);
+    document.getElementById('save-settings').addEventListener('click', saveSettings);
+    
+    document.getElementById('browse-dir').addEventListener('click', () => {
+        const { dialog } = require('@electron/remote');
+        dialog.showOpenDialog({
+            properties: ['openDirectory']
+        }).then(result => {
+            if (!result.canceled) {
+                document.getElementById('plugin-dir').value = result.filePaths[0];
+            }
+        });
+    });
+    
+    window.addEventListener('click', (e) => {
+        const modal = document.getElementById('settings-modal');
+        if (e.target === modal) {
+            closeSettingsModal();
+        }
+    });
     
     renderInstalledPlugins();
     renderMarketplacePlugins();
