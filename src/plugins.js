@@ -20,7 +20,9 @@ class PluginManager {
                 author: 'ClockMaster',
                 icon: '🕐',
                 status: 'installed',
-                lastUpdated: '2025-04-15'
+                lastUpdated: '2025-04-15',
+                latestVersion: '1.3.0',
+                hasUpdate: true
             },
             {
                 id: 'spotify-control',
@@ -30,7 +32,9 @@ class PluginManager {
                 author: 'MusicDev',
                 icon: '🎵',
                 status: 'installed',
-                lastUpdated: '2025-04-14'
+                lastUpdated: '2025-04-14',
+                latestVersion: '2.1.0',
+                hasUpdate: false
             }
         ];
 
@@ -110,6 +114,45 @@ class PluginManager {
 
     uninstallPlugin(pluginId) {
         return this.installedPlugins.delete(pluginId);
+    }
+
+    getPluginsWithUpdates() {
+        return Array.from(this.installedPlugins.values()).filter(plugin => plugin.hasUpdate);
+    }
+
+    updatePlugin(pluginId) {
+        const plugin = this.installedPlugins.get(pluginId);
+        if (plugin && plugin.hasUpdate) {
+            plugin.version = plugin.latestVersion;
+            plugin.hasUpdate = false;
+            plugin.lastUpdated = new Date().toISOString().split('T')[0];
+            return true;
+        }
+        return false;
+    }
+
+    checkForUpdates() {
+        this.installedPlugins.forEach((plugin, id) => {
+            const marketPlugin = this.marketplacePlugins.find(p => p.id === id);
+            if (marketPlugin && this.compareVersions(marketPlugin.version, plugin.version) > 0) {
+                plugin.latestVersion = marketPlugin.version;
+                plugin.hasUpdate = true;
+            }
+        });
+    }
+
+    compareVersions(a, b) {
+        const aParts = a.split('.').map(Number);
+        const bParts = b.split('.').map(Number);
+        
+        for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+            const aPart = aParts[i] || 0;
+            const bPart = bParts[i] || 0;
+            
+            if (aPart > bPart) return 1;
+            if (aPart < bPart) return -1;
+        }
+        return 0;
     }
 }
 

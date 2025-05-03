@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderInstalledPlugins();
             } else if (link.dataset.tab === 'marketplace') {
                 renderMarketplacePlugins();
+            } else if (link.dataset.tab === 'updates') {
+                renderUpdatesTab();
             }
         });
     });
@@ -27,6 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
             renderInstalledPlugins();
         } else if (activeTab === 'marketplace') {
             renderMarketplacePlugins();
+        } else if (activeTab === 'updates') {
+            pluginManager.checkForUpdates();
+            renderUpdatesTab();
         }
     });
     
@@ -39,21 +44,26 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMarketplacePlugins(searchTerm);
     });
     
-    function createPluginCard(plugin, isInstalled = false) {
+    function createPluginCard(plugin, isInstalled = false, showUpdate = false) {
         return `
             <div class="plugin-card">
                 <div class="plugin-card-header">
                     <div class="plugin-icon">${plugin.icon || '📦'}</div>
                     <div class="plugin-info">
                         <div class="plugin-name">${plugin.name}</div>
-                        <div class="plugin-version">v${plugin.version}</div>
+                        <div class="plugin-version">v${plugin.version}${showUpdate && plugin.hasUpdate ? ` → v${plugin.latestVersion}` : ''}</div>
                         ${isInstalled ? `<span class="plugin-status status-installed">Installed</span>` : ''}
+                        ${showUpdate && plugin.hasUpdate ? `<span class="plugin-status status-update-available">Update Available</span>` : ''}
                     </div>
                 </div>
                 <div class="plugin-description">${plugin.description}</div>
                 <div class="plugin-actions">
                     ${isInstalled ? 
-                        `<button class="btn btn-danger btn-small" onclick="uninstallPlugin('${plugin.id}')">Uninstall</button>` :
+                        (plugin.hasUpdate ? 
+                            `<button class="btn btn-primary btn-small" onclick="updatePlugin('${plugin.id}')">Update</button>
+                             <button class="btn btn-danger btn-small" onclick="uninstallPlugin('${plugin.id}')">Uninstall</button>` :
+                            `<button class="btn btn-danger btn-small" onclick="uninstallPlugin('${plugin.id}')">Uninstall</button>`
+                        ) :
                         `<button class="btn btn-primary btn-small" onclick="installPlugin('${plugin.id}')">Install</button>`
                     }
                 </div>
@@ -68,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (plugins.length === 0) {
             container.innerHTML = '<p class="empty-state">No plugins installed yet.</p>';
         } else {
-            container.innerHTML = plugins.map(plugin => createPluginCard(plugin, true)).join('');
+            container.innerHTML = plugins.map(plugin => createPluginCard(plugin, true, true)).join('');
         }
     }
     
@@ -101,6 +111,24 @@ document.addEventListener('DOMContentLoaded', () => {
             renderInstalledPlugins();
         }
     };
+
+    window.updatePlugin = (pluginId) => {
+        if (pluginManager.updatePlugin(pluginId)) {
+            renderInstalledPlugins();
+            renderUpdatesTab();
+        }
+    };
+
+    function renderUpdatesTab() {
+        const container = document.getElementById('update-plugins');
+        const plugins = pluginManager.getPluginsWithUpdates();
+        
+        if (plugins.length === 0) {
+            container.innerHTML = '<p class="empty-state">All plugins are up to date.</p>';
+        } else {
+            container.innerHTML = plugins.map(plugin => createPluginCard(plugin, true, true)).join('');
+        }
+    }
     
     function openSettingsModal() {
         const modal = document.getElementById('settings-modal');
