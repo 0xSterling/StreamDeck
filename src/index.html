@@ -37,8 +37,15 @@
                 
                 <div id="marketplace-tab" class="tab-content">
                     <h2>Plugin Marketplace</h2>
-                    <div class="search-container">
-                        <input type="text" id="search-input" placeholder="Search plugins..." class="search-input">
+                    <div class="marketplace-controls">
+                        <div class="search-container">
+                            <input type="text" id="search-input" placeholder="Search plugins..." class="search-input">
+                        </div>
+                        <div class="filter-container">
+                            <select id="category-filter" class="category-select">
+                                <option value="all">All Categories</option>
+                            </select>
+                        </div>
                     </div>
                     <div id="marketplace-plugins" class="plugin-grid">
                         <p class="empty-state">Loading plugins...</p>
@@ -86,6 +93,37 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="cancel-settings">Cancel</button>
                 <button class="btn btn-primary" id="save-settings">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Plugin Details Modal -->
+    <div id="plugin-details-modal" class="modal">
+        <div class="modal-content plugin-details-content">
+            <div class="modal-header">
+                <h3 id="plugin-detail-name">Plugin Details</h3>
+                <button class="modal-close" id="close-plugin-details">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="plugin-detail-header">
+                    <div class="plugin-detail-icon" id="plugin-detail-icon">📦</div>
+                    <div class="plugin-detail-info">
+                        <h4 id="plugin-detail-title">Plugin Name</h4>
+                        <p class="plugin-detail-author">by <span id="plugin-detail-author">Author</span></p>
+                        <div class="plugin-detail-stats">
+                            <span id="plugin-detail-version">v1.0.0</span>
+                            <span id="plugin-detail-downloads">• 0 downloads</span>
+                            <span id="plugin-detail-rating">• ⭐ 0.0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="plugin-detail-description">
+                    <h5>Description</h5>
+                    <p id="plugin-detail-desc">Plugin description goes here...</p>
+                </div>
+                <div class="plugin-detail-actions">
+                    <button class="btn btn-primary" id="plugin-detail-action">Install</button>
+                </div>
             </div>
         </div>
     </div>

@@ -41,7 +41,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('search-input').addEventListener('input', (e) => {
         const searchTerm = e.target.value;
-        renderMarketplacePlugins(searchTerm);
+        const category = document.getElementById('category-filter').value;
+        renderMarketplacePlugins(searchTerm, category);
+    });
+    
+    document.getElementById('category-filter').addEventListener('change', (e) => {
+        const searchTerm = document.getElementById('search-input').value;
+        const category = e.target.value;
+        renderMarketplacePlugins(searchTerm, category);
     });
     
     function createPluginCard(plugin, isInstalled = false, showUpdate = false) {
@@ -50,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="plugin-card-header">
                     <div class="plugin-icon">${plugin.icon || '📦'}</div>
                     <div class="plugin-info">
-                        <div class="plugin-name">${plugin.name}</div>
+                        <div class="plugin-name" onclick="showPluginDetails('${plugin.id}')">${plugin.name}</div>
                         <div class="plugin-version">v${plugin.version}${showUpdate && plugin.hasUpdate ? ` → v${plugin.latestVersion}` : ''}</div>
                         ${isInstalled ? `<span class="plugin-status status-installed">Installed</span>` : ''}
                         ${showUpdate && plugin.hasUpdate ? `<span class="plugin-status status-update-available">Update Available</span>` : ''}
@@ -82,21 +89,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    function renderMarketplacePlugins(searchTerm = '') {
+    function renderMarketplacePlugins(searchTerm = '', category = 'all') {
         const container = document.getElementById('marketplace-plugins');
-        let plugins;
-        
-        if (searchTerm.trim()) {
-            plugins = pluginManager.searchPlugins(searchTerm);
-        } else {
-            plugins = pluginManager.getMarketplacePlugins();
-        }
+        const plugins = pluginManager.searchPlugins(searchTerm, category);
         
         if (plugins.length === 0) {
             container.innerHTML = '<p class="empty-state">No plugins found.</p>';
         } else {
             container.innerHTML = plugins.map(plugin => createPluginCard(plugin, false)).join('');
         }
+    }
+    
+    function populateCategories() {
+        const categorySelect = document.getElementById('category-filter');
+        const categories = pluginManager.getCategories();
+        
+        categorySelect.innerHTML = '<option value="all">All Categories</option>';
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categorySelect.appendChild(option);
+        });
     }
     
     window.installPlugin = (pluginId) => {
@@ -189,13 +203,62 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
+    function showPluginDetails(pluginId) {
+        const plugin = pluginManager.getInstalledPlugins().find(p => p.id === pluginId) ||
+                      pluginManager.getMarketplacePlugins().find(p => p.id === pluginId);
+        
+        if (!plugin) return;
+        
+        document.getElementById('plugin-detail-name').textContent = plugin.name;
+        document.getElementById('plugin-detail-icon').textContent = plugin.icon || '📦';
+        document.getElementById('plugin-detail-title').textContent = plugin.name;
+        document.getElementById('plugin-detail-author').textContent = plugin.author;
+        document.getElementById('plugin-detail-version').textContent = `v${plugin.version}`;
+        document.getElementById('plugin-detail-downloads').textContent = plugin.downloads ? `• ${plugin.downloads.toLocaleString()} downloads` : '';
+        document.getElementById('plugin-detail-rating').textContent = plugin.rating ? `• ⭐ ${plugin.rating}` : '';
+        document.getElementById('plugin-detail-desc').textContent = plugin.description;
+        
+        const actionBtn = document.getElementById('plugin-detail-action');
+        const isInstalled = pluginManager.getInstalledPlugins().some(p => p.id === pluginId);
+        
+        if (isInstalled) {
+            actionBtn.textContent = 'Uninstall';
+            actionBtn.className = 'btn btn-danger';
+            actionBtn.onclick = () => {
+                uninstallPlugin(pluginId);
+                closePluginDetailsModal();
+            };
+        } else {
+            actionBtn.textContent = 'Install';
+            actionBtn.className = 'btn btn-primary';
+            actionBtn.onclick = () => {
+                installPlugin(pluginId);
+                closePluginDetailsModal();
+            };
+        }
+        
+        document.getElementById('plugin-details-modal').classList.add('show');
+    }
+    
+    function closePluginDetailsModal() {
+        document.getElementById('plugin-details-modal').classList.remove('show');
+    }
+    
+    document.getElementById('close-plugin-details').addEventListener('click', closePluginDetailsModal);
+    
+    window.showPluginDetails = showPluginDetails;
+    
     window.addEventListener('click', (e) => {
-        const modal = document.getElementById('settings-modal');
-        if (e.target === modal) {
+        const settingsModal = document.getElementById('settings-modal');
+        const detailsModal = document.getElementById('plugin-details-modal');
+        if (e.target === settingsModal) {
             closeSettingsModal();
+        } else if (e.target === detailsModal) {
+            closePluginDetailsModal();
         }
     });
     
+    populateCategories();
     renderInstalledPlugins();
     renderMarketplacePlugins();
 });

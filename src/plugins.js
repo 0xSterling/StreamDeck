@@ -54,7 +54,8 @@ class PluginManager {
                 icon: '🌤️',
                 downloads: 15420,
                 rating: 4.8,
-                price: 'free'
+                price: 'free',
+                category: 'Utilities'
             },
             {
                 id: 'cpu-monitor',
@@ -65,7 +66,8 @@ class PluginManager {
                 icon: '💻',
                 downloads: 8743,
                 rating: 4.6,
-                price: 'free'
+                price: 'free',
+                category: 'System'
             },
             {
                 id: 'discord-status',
@@ -76,7 +78,44 @@ class PluginManager {
                 icon: '💬',
                 downloads: 23156,
                 rating: 4.9,
-                price: '$2.99'
+                price: '$2.99',
+                category: 'Social'
+            },
+            {
+                id: 'twitch-control',
+                name: 'Twitch Stream Control',
+                version: '2.3.0',
+                description: 'Control your Twitch stream with one-click actions',
+                author: 'StreamMaster',
+                icon: '📺',
+                downloads: 12847,
+                rating: 4.7,
+                price: 'free',
+                category: 'Streaming'
+            },
+            {
+                id: 'obs-scene-switcher',
+                name: 'OBS Scene Switcher',
+                version: '1.8.3',
+                description: 'Quick scene switching for OBS Studio',
+                author: 'ObsDev',
+                icon: '🎬',
+                downloads: 31245,
+                rating: 4.9,
+                price: 'free',
+                category: 'Streaming'
+            },
+            {
+                id: 'timer-stopwatch',
+                name: 'Timer & Stopwatch',
+                version: '1.2.1',
+                description: 'Customizable timer and stopwatch for productivity',
+                author: 'TimeKeeper',
+                icon: '⏱️',
+                downloads: 9654,
+                rating: 4.4,
+                price: 'free',
+                category: 'Productivity'
             }
         ];
     }
@@ -89,13 +128,29 @@ class PluginManager {
         return this.marketplacePlugins;
     }
 
-    searchPlugins(query) {
+    searchPlugins(query, category = 'all') {
         const searchTerm = query.toLowerCase();
-        return this.marketplacePlugins.filter(plugin => 
-            plugin.name.toLowerCase().includes(searchTerm) ||
-            plugin.description.toLowerCase().includes(searchTerm) ||
-            plugin.author.toLowerCase().includes(searchTerm)
-        );
+        let filtered = this.marketplacePlugins;
+        
+        if (category !== 'all') {
+            filtered = filtered.filter(plugin => plugin.category === category);
+        }
+        
+        if (searchTerm) {
+            filtered = filtered.filter(plugin => 
+                plugin.name.toLowerCase().includes(searchTerm) ||
+                plugin.description.toLowerCase().includes(searchTerm) ||
+                plugin.author.toLowerCase().includes(searchTerm) ||
+                plugin.category.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        return filtered;
+    }
+
+    getCategories() {
+        const categories = [...new Set(this.marketplacePlugins.map(plugin => plugin.category))];
+        return categories.sort();
     }
 
     installPlugin(pluginId) {
