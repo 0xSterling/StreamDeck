@@ -114,9 +114,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     window.installPlugin = (pluginId) => {
-        if (pluginManager.installPlugin(pluginId)) {
-            renderMarketplacePlugins();
-            renderInstalledPlugins();
+        const plugin = pluginManager.getMarketplacePlugins().find(p => p.id === pluginId);
+        if (plugin) {
+            progressTracker.showContainer();
+            progressTracker.startDownload(pluginId, plugin.name);
+            
+            // Disable the button temporarily
+            const buttons = document.querySelectorAll(`button[onclick="installPlugin('${pluginId}')"]`);
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.textContent = 'Installing...';
+            });
+            
+            // Complete installation after progress finishes
+            setTimeout(() => {
+                if (pluginManager.installPlugin(pluginId)) {
+                    renderMarketplacePlugins();
+                    renderInstalledPlugins();
+                }
+            }, 3000 + Math.random() * 2000);
         }
     };
     
@@ -256,6 +272,55 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (e.target === detailsModal) {
             closePluginDetailsModal();
         }
+    });
+    
+    function switchTab(tabName) {
+        const navLinks = document.querySelectorAll('.nav-link');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        navLinks.forEach(l => l.classList.remove('active'));
+        tabContents.forEach(t => t.classList.remove('active'));
+        
+        const targetLink = document.querySelector(`[data-tab="${tabName}"]`);
+        if (targetLink) {
+            targetLink.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'installed') {
+                renderInstalledPlugins();
+            } else if (tabName === 'marketplace') {
+                renderMarketplacePlugins();
+            } else if (tabName === 'updates') {
+                renderUpdatesTab();
+            }
+        }
+    }
+    
+    // IPC event listeners
+    const { ipcRenderer } = require('electron');
+    
+    ipcRenderer.on('refresh-plugins', () => {
+        const activeTab = document.querySelector('.nav-link.active').dataset.tab;
+        if (activeTab === 'installed') {
+            renderInstalledPlugins();
+        } else if (activeTab === 'marketplace') {
+            renderMarketplacePlugins();
+        } else if (activeTab === 'updates') {
+            pluginManager.checkForUpdates();
+            renderUpdatesTab();
+        }
+    });
+    
+    ipcRenderer.on('open-settings', () => {
+        openSettingsModal();
+    });
+    
+    ipcRenderer.on('switch-tab', (event, tabName) => {
+        switchTab(tabName);
+    });
+    
+    ipcRenderer.on('show-about', () => {
+        alert('StreamDeck Plugin Manager v0.1.0\nBuilt with Electron\n\nManage your StreamDeck plugins with ease.');
     });
     
     populateCategories();
